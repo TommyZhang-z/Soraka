@@ -25,7 +25,7 @@ jobs:
     
     - name: Get current date
       id: date
-      run: echo "::set-output name=date::$(date +%s)"
+      run: echo "date=$(date +%s)" >> $GITHUB_OUTPUT
     
     - name: Build the Docker image
       run: docker build . --file ${{ env.DOCKERFILE_PATH }} --tag ${{ env.IMAGE_NAME }}:${{ steps.date.outputs.date }}
