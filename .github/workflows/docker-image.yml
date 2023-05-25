@@ -1,0 +1,62 @@
+name: Docker Image
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  USER: 'root'
+  HOST: '170.64.136.26'
+  IMAGE_NAME: 'zwt/ekko-bot'
+  CONTAINER_NAME: 'ekko-bot-instance'
+  TAR_NAME: 'docker-image.tar'
+  TARGET_PATH: '~'
+  DOCKERFILE_PATH: './Dockerfile'
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +%s)"
+    
+    - name: Build the Docker image
+      run: docker build . --file ${{ env.DOCKERFILE_PATH }} --tag ${{ env.IMAGE_NAME }}:${{ steps.date.outputs.date }}
+    
+    - name: Save the Docker image
+      run: docker save ${{ env.IMAGE_NAME }}:${{ steps.date.outputs.date }} > ${{ env.TAR_NAME }}
+
+    - name: Install SSH key
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Upload Docker image to server
+      run: scp ${{ env.TAR_NAME }} ${{ env.USER }}@${{ env.HOST }}:${{ env.TARGET_PATH }}
+
+    - name: Clean up previous tasks (if any)
+      run : |
+        ssh ${{ env.USER }}@${{ env.HOST }} "docker stop ${{ env.CONTAINER_NAME }}"
+        ssh ${{ env.USER }}@${{ env.HOST }} "docker rm ${{ env.CONTAINER_NAME }}"
+        ssh ${{ env.USER }}@${{ env.HOST }} "docker rmi $(docker images ${{ env.IMAGE_NAME }} -q)"
+    
+    - name: Load and Run Docker image on server
+      run: |
+        ssh ${{ env.USER }}@${{ env.HOST }} "docker load < ${{ env.TAR_NAME }}"
+        ssh ${{ env.USER }}@${{ env.HOST }} "rm ${{ env.TAR_NAME }}"
+        ssh ${{ env.USER }}@${{ env.HOST }} "\
+        docker run -d --restart unless-stopped \
+        -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }} \
+        -e DISCORD_CLIENT_ID=${{ secrets.DISCORD_CLIENT_ID }} \
+        -e DISCORD_GUILD_ID=${{ secrets.DISCORD_GUILD_ID }} \
+        -e DISCORD_DEFAULT_PERMISSION_GROUP=${{ secrets.DISCORD_DEFAULT_PERMISSION_GROUP }} \
+        -e RIOT_GAMES_DEVELOPER_API_KEY=${{ secrets.RIOT_GAMES_DEVELOPER_API_KEY }} \
+        --name ${{ env.CONTAINER_NAME }} \
+        ${{ env.IMAGE_NAME }}:${{ steps.date.outputs.date }} \"
