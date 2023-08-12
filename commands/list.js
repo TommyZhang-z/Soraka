@@ -45,15 +45,29 @@ module.exports = {
       };
 
       const emojiMap = {
-        IRON: '<:IRON:1110106634866409472>',
-        BRONZE: '<:BRONZE:1110106623319486475>',
+        IRON: '<:IRON:1139928631968284756>',
+        BRONZE: '<:BRONZE:1139927800577536071>',
         SILVER: '<:SILVER:1110106641380151296>',
-        GOLD: '<:GOLD:1110106630013595691>',
-        PLATINUM: '<:PLATINUM:1110106639375274017>',
-        DIAMOND: '<:DIAMOND:1110106627576700969>',
-        MASTER: '<:MASTER:1110106636820959292>',
-        GRANDMASTER: '<:GRANDMASTER:1110106632119144538>',
-        CHALLENGER: '<:CHALLENGER:1110106626079330344>',
+        GOLD: '<:GOLD:1139925619887575091>',
+        PLATINUM: '<:PLATINUM:1139922925189865492>',
+        EMERALD: '<:EMERALD:1139930854991331379>',
+        DIAMOND: '<:DIAMOND:1139926464796565524>',
+        MASTER: '<:MASTER:1139927804159471786>',
+        GRANDMASTER: '<:GRANDMASTER:1139929326750531615>',
+        CHALLENGER: '<:CHALLENGER:1139928626956095578>',
+      };
+
+      const chineseMap = {
+        IRON: '坚韧黑铁',
+        BRONZE: '英勇黄铜',
+        SILVER: '不屈白银',
+        GOLD: '荣耀黄金',
+        PLATINUM: '华贵铂金',
+        EMERALD: '流光翡翠',
+        DIAMOND: '璀璨钻石',
+        MASTER: '超凡大师',
+        GRANDMASTER: '傲世宗师',
+        CHALLENGER: '最强王者',
       };
       const splitArray = (array, chunkSize) => {
         let result = [];
@@ -72,23 +86,27 @@ module.exports = {
           );
           const soloString =
             solo !== undefined
-              ? `Solo Rank: ${emojiMap[solo.tier]} ${
-                  solo.tier.charAt(0) + solo.tier.slice(1).toLowerCase()
-                } ${rankMap[solo.rank]} ${solo.leaguePoints} LP`
-              : 'Solo Rank: UNRANKED';
+              ? `单双: ${emojiMap[solo.tier] || ''} ${
+                  chineseMap[solo.tier] || ''
+                } ${['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(
+                  solo.tier
+                ) ? "" : rankMap[solo.rank]} ${solo.leaguePoints}胜点`
+              : '单双: 未定位';
 
           const flex = account.rankedStatus.find(
             (status) => status.queueType === 'RANKED_FLEX_SR'
           );
           const flexString =
             flex !== undefined
-              ? `Flex Rank: ${emojiMap[flex.tier]} ${
-                  flex.tier.charAt(0) + flex.tier.slice(1).toLowerCase()
-                } ${rankMap[flex.rank]} ${flex.leaguePoints} LP`
-              : 'Flex Rank: UNRANKED';
+              ? `灵活: ${emojiMap[flex.tier] || ''} ${
+                  chineseMap[solo.tier] || ''
+                } ${['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(
+                  flex.tier
+                ) ? "" : rankMap[flex.rank]} ${flex.leaguePoints}胜点`
+              : '灵活: 未定位';
           embed.addFields({
             name: account.summonerName,
-            value: `${soloString}\n${flexString}\nUsername: ${account.username}\nPassword: ${account.password}`,
+            value: `${soloString}\n${flexString}\n用户名: ${account.username}\n密码: ${account.password}`,
             inline: true,
           });
           if (index % 2 === 1) {
