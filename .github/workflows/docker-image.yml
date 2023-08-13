@@ -19,6 +19,7 @@ jobs:
       DOCKER_TAG: latest
       DOCKER_INSTANCE: soraka-instance
 
+
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Deploy using ssh
@@ -30,6 +31,8 @@ jobs:
           port: 22
           script: |
             cd /root/Soraka
+            eval "$(ssh-agent -s)"
+            ssh-add ~/.ssh/soraka
             git pull origin main
-            "docker stop $DOCKER_INSTANCE || true"
-            "docker build -t $DOCKER_REPO:$DOCKER_TAG ."
+            docker stop ${{ env.DOCKER_INSTANCE }} || true
+            docker build -t ${{ env.DOCKER_REPO }}:${{ env.DOCKER_TAG }} .
