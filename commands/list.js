@@ -99,14 +99,14 @@ module.exports = {
           const flexString =
             flex !== undefined
               ? `灵活: ${emojiMap[flex.tier] || ''} ${
-                  chineseMap[solo.tier] || ''
+                  chineseMap[flex.tier] || ''
                 } ${['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(
                   flex.tier
                 ) ? "" : rankMap[flex.rank]} ${flex.leaguePoints}胜点`
               : '灵活: 未定位';
           embed.addFields({
             name: account.summonerName,
-            value: `${soloString}\n${flexString}\n用户名: ${account.username}\n密码: ${account.password}`,
+            value: `${soloString}\n${flexString}\n账号: ${account.username}\n密码: ${account.password}`,
             inline: true,
           });
           if (index % 2 === 1) {

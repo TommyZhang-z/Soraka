@@ -1,62 +1,35 @@
-name: Docker Image
+name: Deploy
 
+# Controls when the action will run.
 on:
+  # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ "main" ]
+    branches: [main]
 
-env:
-  USER: 'root'
-  HOST: '170.64.136.26'
-  IMAGE_NAME: 'zwt/ekko-bot'
-  CONTAINER_NAME: 'ekko-bot-instance'
-  TAR_NAME: 'docker-image.tar'
-  TARGET_PATH: '~'
-  DOCKERFILE_PATH: './Dockerfile'
-
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-
+  # This workflow contains a single job called "build"
   build:
-
+    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
+    # Defines the environment variables that are available to all jobs and steps in this workflow
+    env:
+      DOCKER_IMAGE: soraka:latest
+      DOCKER_INSTANCE: soraka-instance
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-    
-    - name: Get current date
-      id: date
-      run: echo "date=$(date +%s)" >> $GITHUB_OUTPUT
-    
-    - name: Build the Docker image
-      run: docker build . --file ${{ env.DOCKERFILE_PATH }} --tag ${{ env.IMAGE_NAME }}:${{ steps.date.outputs.date }}
-    
-    - name: Save the Docker image
-      run: docker save ${{ env.IMAGE_NAME }}:${{ steps.date.outputs.date }} > ${{ env.TAR_NAME }}
-
-    - name: Install SSH key
-      uses: webfactory/ssh-agent@v0.8.0
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-    - name: Upload Docker image to server
-      run: scp ${{ env.TAR_NAME }} ${{ env.USER }}@${{ env.HOST }}:${{ env.TARGET_PATH }}
-
-    - name: Clean up previous tasks (if any)
-      run : |
-        ssh ${{ env.USER }}@${{ env.HOST }} "docker stop ${{ env.CONTAINER_NAME }}"
-        ssh ${{ env.USER }}@${{ env.HOST }} "docker rm ${{ env.CONTAINER_NAME }}"
-        ssh ${{ env.USER }}@${{ env.HOST }} "docker rmi $(docker images ${{ env.IMAGE_NAME }} -q)"
-    
-    - name: Load and Run Docker image on server
-      run: |
-        ssh ${{ env.USER }}@${{ env.HOST }} "docker load < ${{ env.TAR_NAME }}"
-        ssh ${{ env.USER }}@${{ env.HOST }} "rm ${{ env.TAR_NAME }}"
-        ssh ${{ env.USER }}@${{ env.HOST }} "\
-        docker run -d --restart unless-stopped \
-        -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }} \
-        -e DISCORD_CLIENT_ID=${{ secrets.DISCORD_CLIENT_ID }} \
-        -e DISCORD_GUILD_ID=${{ secrets.DISCORD_GUILD_ID }} \
-        -e DISCORD_DEFAULT_PERMISSION_GROUP=${{ secrets.DISCORD_DEFAULT_PERMISSION_GROUP }} \
-        -e RIOT_GAMES_DEVELOPER_API_KEY=${{ secrets.RIOT_GAMES_DEVELOPER_API_KEY }} \
-        --name ${{ env.CONTAINER_NAME }} \
-        ${{ env.IMAGE_NAME }}:${{ steps.date.outputs.date }} \"
+      - name: Deploy using ssh
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            cd /root/Soraka
+            git pull origin main
+            docker stop {{ env.DOCKER_INSTANCE }}
+            docker build -t {{ env.DOCKER_IMAGE }} .
+            docker run -d --restart unless-stopped   -e "DISCORD_TOKEN=MTEwNTkzMzQ3NDE2ODMyNDI3OA.Gm1sNu.CpM60L6_rEALTdYid_3dkEoL5YlRk6qMgIJghg"   -e "DISCORD_CLIENT_ID=1105933474168324278"   -e "DISCORD_GUILD_ID=952157949516730398"   -e "DISCORD_DEFAULT_PERMISSION_GROUP=1106292900775608430"   -e "RIOT_GAMES_DEVELOPER_API_KEY=RGAPI-18614f4c-e9fe-4b6e-9293-9c33e5fc5550"   --name {{ env.DOCKER_INSTANCE }} {{ env.DOCKER_IMAGE }}
