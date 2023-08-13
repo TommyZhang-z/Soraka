@@ -1,7 +1,0 @@
-@token = RGAPI-18614f4c-e9fe-4b6e-9293-9c33e5fc5550
-@summoner = k8s
-@puuid = LYcPXu3YkftAoGKxjmePplzVQE1ppCXavaBdvgLUmN8GH98v_TsN0xeY5QhTav8sgM84ib_eoe5Cow
-
-### by summoner name
-GET https://oc1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/{{puuid}}
-X-Riot-Token: {{token}}
