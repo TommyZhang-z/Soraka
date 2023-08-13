@@ -37,6 +37,7 @@ jobs:
             docker build -t ${{ env.DOCKER_REPO }}:${{ env.DOCKER_TAG }} .
             docker run \
             -d --restart unless-stopped \
+            -e "FIREBASE_CREDENTIALS_BASE64=${{ secrets.FIREBASE_CREDENTIALS_BASE64 }}"
             -e "DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}" \
             -e "DISCORD_CLIENT_ID=${{ secrets.DISCORD_CLIENT_ID }}" \
             -e "DISCORD_GUILD_ID=${{ secrets.DISCORD_GUILD_ID }}" \

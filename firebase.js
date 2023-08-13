@@ -1,5 +1,8 @@
 const admin = require('firebase-admin');
-const serviceAccount = require('./discord-account-bot-firebase-adminsdk-4vgii-21fb2d3cce.json');
+
+const firebaseCredentials = Buffer.from(process.env.FIREBASE_CREDENTIALS_BASE64, 'base64').toString('utf8');
+
+const serviceAccount = JSON.parse(firebaseCredentials);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
