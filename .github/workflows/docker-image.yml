@@ -34,6 +34,7 @@ jobs:
             ssh-add ~/.ssh/soraka
             git pull origin main
             docker stop ${{ env.DOCKER_INSTANCE }} || true
+            docker rm ${{ env.DOCKER_INSTANCE }} || true
             docker build -t ${{ env.DOCKER_REPO }}:${{ env.DOCKER_TAG }} .
             docker run \
             -d --restart unless-stopped \
