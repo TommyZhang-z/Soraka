@@ -19,7 +19,6 @@ jobs:
       DOCKER_TAG: latest
       DOCKER_INSTANCE: soraka-instance
 
-
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Deploy using ssh
@@ -36,3 +35,12 @@ jobs:
             git pull origin main
             docker stop ${{ env.DOCKER_INSTANCE }} || true
             docker build -t ${{ env.DOCKER_REPO }}:${{ env.DOCKER_TAG }} .
+            docker run \
+            -d --restart unless-stopped \
+            -e "DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}" \
+            -e "DISCORD_CLIENT_ID=${{ secrets.DISCORD_CLIENT_ID }}" \
+            -e "DISCORD_GUILD_ID=${{ secrets.DISCORD_GUILD_ID }}" \
+            -e "DISCORD_DEFAULT_PERMISSION_GROUP=${{ secrets.DISCORD_DEFAULT_PERMISSION_GROUP }}" \
+            -e "RIOT_GAMES_DEVELOPER_API_KEY=${{ secrets.RIOT_GAMES_DEVELOPER_API_KEY }}" \
+            --name ${{ env.DOCKER_INSTANCE }} \
+            ${{ env.DOCKER_REPO }}:${{ env.DOCKER_TAG }}
