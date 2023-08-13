@@ -27,6 +27,7 @@ for (const file of commandFiles) {
   const command = require(filePath);
   // Set a new item in the Collection with the key as the command name and the value as the exported module
   if ('data' in command && 'execute' in command) {
+    command.data.setDefaultPermission(true);
     client.commands.set(command.data.name, command);
     commands.push(command.data.toJSON());
   } else {
